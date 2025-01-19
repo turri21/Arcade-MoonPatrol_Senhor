@@ -2,6 +2,8 @@
 
 Tested: Working Video 720p, 1080p & Sound.
 
+Dev notes: Swapped clocks
+
 ---------------------------------------------------------------------------------
 -- 
 -- Arcade: Moon Patrol port to MiSTer by Sorgelig
