@@ -78,6 +78,12 @@ architecture SYN of target_top is
   signal target_o       : to_TARGET_IO_t;
 
   signal sound_data     : std_logic_vector(7 downto 0);
+
+  -- Extended reset signals for sound system
+  signal sound_reset_cnt : std_logic_vector(15 downto 0);
+  signal sound_reset_n   : std_logic;
+  signal reset_sound     : std_logic;
+
 begin
 
   clkrst_i.clk(0)<=clock_30;
@@ -100,6 +106,28 @@ begin
     end process;
 
   end generate GEN_RESETS;
+
+  -- Extended reset generator for sound system
+  -- Holds sound CPU in reset for ~2ms after main reset releases
+  -- This ensures the 3.58MHz clock is stable and sound RAM is initialized
+  process (clock_30, reset)
+  begin
+    if reset = '1' then
+      sound_reset_cnt <= (others => '0');
+      sound_reset_n <= '0';
+    elsif rising_edge(clock_30) then
+      if sound_reset_cnt < X"EA60" then  -- 60000 cycles = ~2ms at 30MHz
+        sound_reset_cnt <= sound_reset_cnt + 1;
+        sound_reset_n <= '0';
+      else
+        sound_reset_n <= '1';
+      end if;
+    end if;
+  end process;
+  
+  -- Combine main reset with extended sound reset
+  -- Active high: '1' = reset, '0' = run
+  reset_sound <= reset or (not sound_reset_n);
 
 	inputs_i.jamma_n.coin(1) <= not JOY(7);
 	inputs_i.jamma_n.p(1).start <= not JOY(6);
@@ -216,7 +244,7 @@ begin
 	moon_patrol_sound_board : entity work.moon_patrol_sound_board
 	port map(
 		clock_3p58   => clock_3p58,
-		reset        => reset,
+		reset        => reset_sound,  -- Use extended reset instead of main reset
 	 
 		clock_30     => clock_30,
 		dn_addr      => dn_addr,
