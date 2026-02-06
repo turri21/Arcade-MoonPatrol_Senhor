@@ -3,7 +3,6 @@
 Tested: Working Video 720p, 1080p & Sound.
 
 Dev notes: Swapped clocks
-
 moon patrol sound problem #26 -- fixed in target_top.vhd
 ---------------------------------------------------------------------------------
 -- 
